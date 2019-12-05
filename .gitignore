@@ -8,6 +8,8 @@ evaluate_datasets/
 evaluate_datasets
 datasets
 datasets/
+backup
+backup/
 # C extensions
 *.so
 
