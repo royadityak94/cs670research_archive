@@ -12,7 +12,8 @@ backup
 backup/
 # C extensions
 *.so
-
+Fall19-4ad4e567cfce.json
+*.Fall19-4ad4e567cfce.json
 # Distribution / packaging
 .Python
 build/

@@ -13,7 +13,7 @@ from nltk.corpus import stopwords as stpword
 from nltk.stem import WordNetLemmatizer
 from utilities.image_description_scoring import matching_label_score
 from time import time
-from utilities.pythonDB import writeToDB, recordsExists
+from utilities.pythonDB import writeToDB_label, recordsExists_label
 
 stopwords = set(stpword.words('english'))
 wordNetLemma = WordNetLemmatizer()
@@ -51,22 +51,42 @@ class DetectLabels():
         with io.open(os.path.join(base, file), 'rb') as image_file:
             content = (image_file.read())
         self.content = content
-        self.base, self.file, self.actual_str, self.detected_str = base, file, '', ''
+        self.base, self.actual_str, self.detected_str = base, '', '' 
+        
+        if 'img' in file:
+            self.file = '_'.join(file.split('_')[-2:])
+            if 'eraser' in file:
+                self.severity, self.noise_type = -1, '_'.join(file.split('_')[1:-2])
+            else:
+                self.severity, self.noise_type = file.split('_')[-3], '_'.join(file.split('_')[1:-3])
+        else:
+            self.file = '_'.join(file.split('_')[-1:])
+            if 'eraser' in file:
+                self.severity, self.noise_type = -1, '_'.join(file.split('_')[1:-1])
+            else:
+                self.severity, self.noise_type = file.split('_')[-2], '_'.join(file.split('_')[1:-2])
+        
         self.label = ''
         self.start = time()
         self.max_labels = max_labels
         
     def return_function(self, name):
         dataset = self.base.split('/')[1]
-        if recordsExists(self.file, dataset, name):
+        self.label = name + '-noisy'
+        if recordsExists_label(self.file, dataset, self.label, self.severity, self.noise_type):
             return
         
         status, score =  getattr(self, 'if_' + name)()
         compute_time = time() - self.start
-        self.label = name
+        self.label = name + '-noisy'
         
-        bag = (self.file, dataset, self.label, status, score, compute_time, self.actual_str, self.detected_str)
-        writeToDB(bag)
+        if score != 0:
+            score1, score2, score3 = score[0], score[1], score[2]
+        else:
+            score1, score2, score3 = 0.0, 0.0, 0.0
+        
+        bag = (self.file, dataset, self.label, self.severity, self.noise_type, status, score1, score2, score3, compute_time, self.actual_str, self.detected_str)
+        writeToDB_label(bag)
         
     def compute_ground_truth(self):
         ''' Status = {-1:'API Error', -2: 'Ground Truth Empty', 0: 'All Correct'}, Return = Ground Truth, Status
@@ -92,7 +112,7 @@ class DetectLabels():
             score1 = matching_label_score(detected_label, ground_truth, 1)
             score2 = matching_label_score(detected_label, ground_truth, 2)
             score3 = matching_label_score(detected_label, ground_truth, 3)
-            score = str([score1, score2, score3])
+            score = [score1, score2, score3]
             
             self.detected_str = detected_label
             return 0, score
@@ -111,7 +131,7 @@ class DetectLabels():
             score1 = matching_label_score(detected_label, ground_truth, 1)
             score2 = matching_label_score(detected_label, ground_truth, 2)
             score3 = matching_label_score(detected_label, ground_truth, 3)
-            score = str([score1, score2, score3])
+            score = [score1, score2, score3]
             
             self.detected_str = detected_label
             return 0, score
@@ -133,7 +153,7 @@ class DetectLabels():
             score1 = matching_label_score(detected_label, ground_truth, 1)
             score2 = matching_label_score(detected_label, ground_truth, 2)
             score3 = matching_label_score(detected_label, ground_truth, 3)
-            score = str([score1, score2, score3])
+            score = [score1, score2, score3]
             
             self.detected_str = detected_label
             return 0, score
@@ -141,14 +161,14 @@ class DetectLabels():
             return -1, 0
         
 annotation_dir_path = 'datasets/image_labeling/annotations'
-train_dir_path = 'datasets/image_labeling/train2017'
+train_dir_path = 'datasets/image_labeling/noises'
 captions_validation = get_captions(annotation_dir_path, 'captions_val2017.json')
 captions = get_captions(annotation_dir_path, 'captions_train2017.json')
 captions.update(captions_validation)
 del captions_validation
 
 dict_files, files_idx = get_mapped(train_dir_path)
-shuffled_idx = np.random.randint(0, len(files_idx), len(files_idx))[:10000]
+shuffled_idx = np.random.randint(0, len(files_idx), len(files_idx))[:6000]
 
 for idx in shuffled_idx:
     file_name = dict_files.get(idx)
