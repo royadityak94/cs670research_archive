@@ -2,7 +2,7 @@ import mysql.connector
 
 def writeToDB(optimizer, activation, architecture, bag, label=None, keywords=None):
     loss, accuracy, mae, mse, train_loss_dict, train_accuracy_dict, train_mae_dict, train_mse_dict = bag
-    db_conn = mysql.connector.connect(host="localhost", user="root", passwd="1234",  database='cs682research')
+    db_conn = mysql.connector.connect(host="localhost", user="root", passwd="1234",  database='cs670research')
     db_cursor = db_conn.cursor(buffered=True)
     insert_query = "INSERT INTO research_exploration VALUES('{}', '{}', '{}', \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", '{}', '{}');"\
     .format(optimizer, activation, architecture, (train_loss_dict), str(train_accuracy_dict), \
@@ -15,7 +15,7 @@ def writeToDB(optimizer, activation, architecture, bag, label=None, keywords=Non
     return
 
 def deleteExistingPrimaryKeyDB(optimizer, activation, architecture, label=None, keywords=None):
-    db_conn = mysql.connector.connect(host="localhost", user="root", passwd="1234",  database='cs682research')
+    db_conn = mysql.connector.connect(host="localhost", user="root", passwd="1234",  database='cs670research')
     db_cursor = db_conn.cursor(buffered=True)
     delete_query = "DELETE FROM research_exploration WHERE optimizer='{}' and activation='{}' and architecture='{}' \
 and label='{}' and keywords='{}'".format(optimizer, activation, architecture, label, keywords)
@@ -28,7 +28,7 @@ and label='{}' and keywords='{}'".format(optimizer, activation, architecture, la
 
 def countExistingRecords(bg):
     architecture, label, optimizer, activation = bg
-    db_conn = mysql.connector.connect(host="localhost", user="root", passwd="1234",  database='cs682research')
+    db_conn = mysql.connector.connect(host="localhost", user="root", passwd="1234",  database='cs670research')
     db_cursor = db_conn.cursor(buffered=True)
     count_query = "select count(*) from research_exploration WHERE architecture='{}' and label='{}' \
     and optimizer='{}' and activation='{}'".format(architecture, label, optimizer, activation)

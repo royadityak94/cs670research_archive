@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS cs682research.research_exploration (
+CREATE TABLE IF NOT EXISTS cs670research.research_exploration (
 optimizer VARCHAR(255) NOT NULL,
 activation VARCHAR(255) NOT NULL,
 architecture VARCHAR(255) NOT NULL,
